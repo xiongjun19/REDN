@@ -20,7 +20,11 @@ Run example/redn_trainer.py with args **dataset** and **mode**. **dataset** can 
  ```
 python redn_trainer semeval t
 ```
-
+## 新方法，基于子空间的训练
+```
+python python new_trainer.py semeval t
+```
+新方法的效果提升了约1个百分点；
 ## Another Branch
 
 We establish a [new branch](https://github.com/slczgwh/REDN/tree/allennlp-based) based on [Allennlp](https://github.com/allenai/allennlp)
