@@ -7,6 +7,7 @@ from .softmax_nn import SoftmaxNN
 from .bag_attention import BagAttention
 from .bag_average import BagAverage
 from .para import PARA
+from .new_para import PARA2
 
 __all__ = [
     'SentenceRE',
@@ -15,5 +16,6 @@ __all__ = [
     'NER',
     'SoftmaxNN',
     'PARA',
+    'PARA2',
     'BagAttention'
 ]

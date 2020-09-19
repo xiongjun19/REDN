@@ -89,7 +89,7 @@ def train(dataset_name, batch_size=50, num_workers=2, max_epoch=15, lr=3e-5, wei
     rel2id = json.load(open(os.path.join(root_path, dataset_name, 'rel2id.json')))
 
     sentence_encoder = encoder.BERTHiddenStateEncoder(pretrain_path=bert_path)
-    _model = model.PARA(sentence_encoder, len(rel2id), rel2id, num_token_labels=2, subject_1=subject_1, use_cls=use_cls)
+    _model = model.PARA2(sentence_encoder, len(rel2id), rel2id, num_token_labels=2, subject_1=subject_1, use_cls=use_cls)
 
     train_loader, val_loader, test_loader = get_dataset(_model)
 
