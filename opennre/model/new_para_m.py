@@ -52,6 +52,7 @@ class PARAM(SentenceRE):
                                              num_heads=num_class)
         self.c_lin = nn.Linear(num_class, 1) 
         self.dropout = nn.Dropout(0.5)
+        self.norm = nn.LayerNorm(hidden_size, 1e-12) 
 
     def infer(self, item):
         self.eval()
@@ -84,6 +85,7 @@ class PARAM(SentenceRE):
             k = getattr(self, f"key_{l}")
             v = getattr(self, f"value_{l}")
             f = swish
+            org_val = value
             query = q(query)
             key = k(key)
             value = v(value)
@@ -94,14 +96,14 @@ class PARAM(SentenceRE):
             key = f(key)
             value = f(value)
             att = self.attn_score(key, query)  # BS * NTL * SL * SL
-            value = self._update_val(att, value, att_mask)  
+            value = self._update_val(att, value, org_val, att_mask)  
             query = value
 
         score = self.attn_score(key, query)  # BS * NTL * SL * SL
         score = score.sigmoid()
         return score, subject_output_logits, atts[-1]
 
-    def _update_val(self, att, value, att_mask):
+    def _update_val(self, att, value, org_val, att_mask):
         # import ipdb; ipdb.set_trace()
         att_mask = att_mask[:, None, None, :]
         att_mask = (1 - att_mask) * -1000.0
@@ -115,7 +117,8 @@ class PARAM(SentenceRE):
         new_val = self.c_lin(new_val)
         new_val = swish(new_val)
         new_val = new_val.squeeze(-1)
-        value = value + new_val # TODO adding layer_norm
+        value = org_val + new_val # TODO adding layer_norm
+        value = self.norm(value)
         return value
 
 
