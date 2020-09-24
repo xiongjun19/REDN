@@ -20,7 +20,7 @@ import os
 
 def train(dataset_name, batch_size=50, num_workers=2, max_epoch=15, lr=3e-5, weight_decay=1e-5, add_subject_loss=False,
           eval=False, continue_train=False, large_bert=False, subject_1=False, use_cls=True, softmax=False,
-          opt='adam', seed=31415926535897932, cuda_device=0, sort=True, metric="micro_f1"
+          opt='adam', seed=31415926535897932, cuda_device=3, sort=True, metric="micro_f1"
           ):
     print("@@@@@@@@@@@ args @@@@@@@@@@@")
     print(locals())
@@ -181,12 +181,14 @@ if __name__ == '__main__':
     print("==========%s %s============" % (dataset_name, str(task_id)))
     if dataset_name in ["semeval", "semeval_1"]:
         max_epoch = 50
-        batch_size = 64
+        # batch_size = 64
+        batch_size = 32 
         # batch_size = 16 
         args_list = get_ablation_args(dataset_name,
                                       max_epoch=max_epoch,
                                       batch_size=batch_size,
-                                      cuda_device=0,
+                                      cuda_device=3,
+                                      lr=1.5e-5,
                                       # continue_train=True,
                                       # seed=None,
                                       eval=not is_train,

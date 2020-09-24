@@ -39,7 +39,7 @@ class PARAM(SentenceRE):
 
         self.subject_output_fc = nn.Linear(hidden_size, self.num_token_labels)
         # self.bias = Parameter(torch.zeros((num_class, seq_len, seq_len)))
-        LAYER = 2
+        LAYER = 1  
         for l in range(LAYER):
             setattr(self, f"query_{l}", nn.Linear(hidden_size, hidden_size))
             setattr(self, f"key_{l}", nn.Linear(hidden_size, hidden_size))
@@ -50,6 +50,8 @@ class PARAM(SentenceRE):
         self.attn_score = MultiHeadAttention(input_size=hidden_size,
                                              output_size=num_class * hidden_size,
                                              num_heads=num_class)
+        self.c_lin = nn.Linear(num_class, 1) 
+        self.dropout = nn.Dropout(0.5)
 
     def infer(self, item):
         self.eval()
@@ -62,6 +64,7 @@ class PARAM(SentenceRE):
         return self.id2rel[pred], score
 
     def forward(self, token, att_mask):
+        # import ipdb; ipdb.set_trace()
         rep, hs, atts = self.sentence_encoder(token, att_mask)  # (B, H)
         if self.subject_1:
             subject_output = hs[-1]  # BS * SL * HS
@@ -81,19 +84,39 @@ class PARAM(SentenceRE):
             k = getattr(self, f"key_{l}")
             v = getattr(self, f"value_{l}")
             f = swish
-            query = f(q(query))
-            key = f(k(key))
-            value = f(v(value))
+            query = q(query)
+            key = k(key)
+            value = v(value)
+            query = self.dropout(query)
+            key = self.dropout(key)
+            value = self.dropout(value)
+            query = f(query)
+            key = f(key)
+            value = f(value)
             att = self.attn_score(key, query)  # BS * NTL * SL * SL
-            attention_probs = nn.Softmax(dim=-1)(att)
-            # attention_probs = self.dropout(attention_probs)
-            new_val = torch.matmul(attention_probs, value)
-            value = value + new_val
+            value = self._update_val(att, value, att_mask)  
             query = value
 
         score = self.attn_score(key, query)  # BS * NTL * SL * SL
         score = score.sigmoid()
         return score, subject_output_logits, atts[-1]
+
+    def _update_val(self, att, value, att_mask):
+        # import ipdb; ipdb.set_trace()
+        att_mask = att_mask[:, None, None, :]
+        att_mask = (1 - att_mask) * -1000.0
+        att = att_mask + att
+        attention_probs = nn.Softmax(dim=-1)(att) # TODO adding att_mask
+        # attention_probs = self.dropout(attention_probs)
+        val_expand = value.unsqueeze(1)
+        new_val = torch.matmul(attention_probs, val_expand)
+        new_val = new_val.permute([0, 2, 3, 1])  
+        new_val = self.dropout(new_val)
+        new_val = self.c_lin(new_val)
+        new_val = swish(new_val)
+        new_val = new_val.squeeze(-1)
+        value = value + new_val # TODO adding layer_norm
+        return value
 
 
 class MultiHeadAttention(torch.nn.Module):
