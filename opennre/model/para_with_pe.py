@@ -82,16 +82,17 @@ class MultiHeadAttention(torch.nn.Module):
 
         self.Wq = torch.nn.Linear(input_size, output_size)
         self.Wk = torch.nn.Linear(input_size, output_size)
-        max_seq_len = 200
+        max_seq_len = 1000
         self.emb = nn.Embedding(max_seq_len, 1)
 
-    def get_pe(self, pe_shape):
+    def get_pe(self, pe_shape, device):
         pos_mat = self.init_matrix(pe_shape[-2], pe_shape[-1])
         pos_mat = pos_mat.reshape([1, -1])
         ts = torch.LongTensor(pos_mat)
+        ts = ts.to(device)
         pos_tensor = self.emb(ts)
         pos_tensor = pos_tensor.view([pe_shape[-2], pe_shape[-1], -1])
-        new_size = pe_shape + [pos_tensor.shape[-1]]
+        new_size = pe_shape + (pos_tensor.shape[-1],)
         new_tensor = pos_tensor.expand(new_size)
         return new_tensor
 
@@ -121,7 +122,7 @@ class MultiHeadAttention(torch.nn.Module):
         attn_score = torch.matmul(q, k.permute(0, 1, 3, 2))
         attn_score = attn_score / np.sqrt(k.shape[-1])
         pe_shape = attn_score.shape
-        pe = self.get_pe(pe_shape)
+        pe = self.get_pe(pe_shape, attn_score.get_device())
         attn_score = attn_score + pe.squeeze(-1)
 
         # scaled_attention = output[0].permute([0, 2, 1, 3])

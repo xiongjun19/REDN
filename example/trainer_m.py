@@ -180,15 +180,15 @@ if __name__ == '__main__':
         task_id = int(sys.argv[3])
     print("==========%s %s============" % (dataset_name, str(task_id)))
     if dataset_name in ["semeval", "semeval_1"]:
-        max_epoch = 50
+        max_epoch = 30 
         # batch_size = 64
         batch_size = 32 
         # batch_size = 16 
         args_list = get_ablation_args(dataset_name,
                                       max_epoch=max_epoch,
                                       batch_size=batch_size,
-                                      cuda_device=3,
-                                      lr=1.5e-5,
+                                      cuda_device=0,
+                                      lr=3e-5,
                                       # continue_train=True,
                                       # seed=None,
                                       eval=not is_train,
