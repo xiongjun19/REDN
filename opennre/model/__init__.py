@@ -10,6 +10,7 @@ from .para import PARA
 from .new_para import PARA2
 from .new_para_m import PARAM
 from .para_with_pe import PARA_PE
+from .new_para_pe import PARA_M_PE
 
 __all__ = [
     'SentenceRE',
@@ -21,5 +22,6 @@ __all__ = [
     'PARA2',
     'PARAM',
     'PARA_PE',
+    'PARA_M_PE',
     'BagAttention'
 ]
