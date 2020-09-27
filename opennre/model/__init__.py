@@ -9,6 +9,7 @@ from .bag_average import BagAverage
 from .para import PARA
 from .new_para import PARA2
 from .new_para_m import PARAM
+from .para_with_pe import PARA_PE
 
 __all__ = [
     'SentenceRE',
@@ -19,5 +20,6 @@ __all__ = [
     'PARA',
     'PARA2',
     'PARAM',
+    'PARA_PE',
     'BagAttention'
 ]
